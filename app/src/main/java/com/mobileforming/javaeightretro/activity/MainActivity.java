@@ -15,6 +15,8 @@ import com.android.volley.toolbox.Volley;
 import com.mobileforming.javaeightretro.R;
 import com.mobileforming.javaeightretro.model.Joke;
 import com.mobileforming.javaeightretro.net.JokeRequest;
+import com.mobileforming.javaeightretro.net.JokeResolver;
+import com.mobileforming.javaeightretro.net.RandomJokeResolver;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         mJokeTextView = (TextView) findViewById(R.id.joke);
 
         mRequestQueue = Volley.newRequestQueue(this);
+
     }
 
     public void btnClick(View view) {
@@ -36,14 +39,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getNewJokeOld() {
-        JokeRequest request = new JokeRequest(new Response.Listener<Joke>() {
+        JokeRequest request = new JokeRequest(getJokeResolver(), new Response.Listener<Joke>() {
             @Override
             public void onResponse(Joke response) {
+                Log.d("joke", "success!");
                 displayNewJoke(response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.e("joke", "failure! " + error);
                 displayError(error);
             }
         });
@@ -52,13 +57,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getNewJokeLambda() {
-        JokeRequest request = new JokeRequest(response -> displayNewJoke(response), error -> displayError(error));
+        JokeRequest request = new JokeRequest(getJokeResolver(), response -> displayNewJoke(response), error -> displayError(error));
+
+        mRequestQueue.add(request);
+    }
+
+    private void getNewJokeLambdaReadable() {
+        JokeRequest request = new JokeRequest(getJokeResolver(),
+                (Joke response) -> displayNewJoke(response),
+                (VolleyError error) -> displayError(error));
 
         mRequestQueue.add(request);
     }
 
     private void getNewJokeLambdaMultiline() {
-        JokeRequest request = new JokeRequest(response -> {
+        JokeRequest request = new JokeRequest(getJokeResolver(), response -> {
             Log.d("joke", "success!");
             displayNewJoke(response);
         }, error -> {
@@ -70,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getNewJokeMethodRef() {
-        JokeRequest request = new JokeRequest(this::displayNewJoke, this::displayError);
+        JokeRequest request = new JokeRequest(getJokeResolver(), this::displayNewJoke, this::displayError);
 
         mRequestQueue.add(request);
     }
@@ -81,5 +94,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayNewJoke(Joke response) {
         mJokeTextView.setText(Html.fromHtml(response.value.joke));
+    }
+
+    private JokeResolver getJokeResolver() {
+        return new RandomJokeResolver();
+        //        return new BestJokeResolver();
     }
 }

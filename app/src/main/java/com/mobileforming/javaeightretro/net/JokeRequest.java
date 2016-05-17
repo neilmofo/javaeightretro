@@ -14,12 +14,12 @@ import java.io.UnsupportedEncodingException;
  *         5/12/16
  *         ©2016 Hilton Worldwide Inc. All rights reserved.
  */
-public class JokeRequest extends Request<Joke> {
+public class JokeRequest extends Request<Joke> implements JokeResolver {
 
     private final Response.Listener<Joke> mSuccessListener;
 
-    public JokeRequest(Response.Listener<Joke> successListener, Response.ErrorListener errorListener) {
-        super(Method.GET, "http://api.icndb.com/jokes/random", errorListener);
+    public JokeRequest(JokeResolver jokeResolver, Response.Listener<Joke> successListener, Response.ErrorListener errorListener) {
+        super(Method.GET, jokeResolver.getJokeURL(), errorListener);
         mSuccessListener = successListener;
     }
 
@@ -59,5 +59,10 @@ public class JokeRequest extends Request<Joke> {
     @Override
     protected void deliverResponse(Joke response) {
         mSuccessListener.onResponse(response);
+    }
+
+    @Override
+    public String getJokeURL() {
+        return getPath();
     }
 }
